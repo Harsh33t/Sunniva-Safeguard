@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+build/
+*.pkl
+*.pth
+__pycache__/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
