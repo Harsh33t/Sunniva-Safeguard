@@ -7,7 +7,7 @@
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
 1. **Multi-Agent Orchestration Layer**:
    - 4-Agent Pipeline (`Researcher` → `Planner` → `Executor` → `Reviewer` + cross-talk feedback loop).
