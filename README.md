@@ -11,7 +11,7 @@
 
 1. **Multi-Agent Orchestration Layer**:
    - 4-Agent Pipeline (`Researcher` → `Planner` → `Executor` → `Reviewer` + cross-talk feedback loop).
-   - Real-time inter-agent event telemetry streamed via WebSockets.
+   - Real-time inter-agent event telemetr streamed via WebSockets.
 
 2. **3 Attack Simulation Vectors**:
    - **Prompt Injection**: Malicious system instruction override & data exfiltration payloads.
