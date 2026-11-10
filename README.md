@@ -44,7 +44,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Backend Dependencies & Start Server
 ```powershell
