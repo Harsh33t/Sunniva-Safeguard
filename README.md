@@ -34,6 +34,12 @@
    - Automated 50-trial simulation harness comparing **Unprotected Swarm** vs **Sunniva Safeguard Active**.
    - Computes Attack Success Rate (ASR), Attacks Blocked Rate, False Positive Rate (FPR), and Detection Latency.
 
+6. **Restricted Python Tool Evaluation**:
+   - Evaluates a bounded subset of Python with a hand-written AST interpreter; it does not call Python `exec` or `eval`.
+   - Supports simple assignments, numeric expressions, small built-in containers, bounded `print`/aggregate helpers, and explicit `memory_get` / `memory_set` / `memory_delete` calls.
+   - Rejects imports, attribute access, file/network/process calls, loops, comprehensions, and other unsupported syntax; source, syntax-tree size, values, and output are bounded.
+   - This is a restricted language evaluator, not an OS-level process sandbox. Python's documentation warns that `exec()` executes arbitrary code and is unsafe for untrusted input.[1]
+
 ---
 
 ## 🛠️ Tech Stack
@@ -67,7 +73,22 @@ Open `http://localhost:3000` in your browser.
 
 ---
 
+## Backend tests
+
+Run the restricted Python evaluator regression tests from the backend directory:
+
+```bash
+cd backend
+python -m unittest discover -s tests -v
+```
+
+The suite checks supported calculations and explicit shared-memory operations, rejects imports and arbitrary execution syntax, verifies filesystem calls are not executed, and exercises source/output/resource limits and memory rollback.
+
+---
+
 ## 📚 Citation & Author Information
+
+[1]: https://docs.python.org/3/library/functions.html#exec "Python built-in function documentation: exec warning"
 
 ```bibtex
 @software{dwivedi2026sunnivasafeguard,

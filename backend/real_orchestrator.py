@@ -136,11 +136,11 @@ class RealMultiAgentPipeline:
         
         raw_res_2 = self._call_real_llm("Executor", sys_executor, user_executor)
 
-        # Real Sandbox Code Execution Tool Call
+        # Restricted Python subset evaluation tool call
         code_snippet = "result = 'Execution completed successfully: All security checks passed.'"
         code_exec_res = execute_python_code(code_snippet)
         
-        full_executor_payload = f"{raw_res_2}\n\n[REAL PYTHON SANDBOX EXECUTION OUTPUT]:\n{code_exec_res['stdout']}"
+        full_executor_payload = f"{raw_res_2}\n\n[RESTRICTED PYTHON TOOL OUTPUT]:\n{code_exec_res['stdout']}"
 
         msg_2, is_attack_2, meta_2 = self.attack_sim.intercept_message_in_transit("Executor", "Reviewer", full_executor_payload, 2)
         eval_2 = self.watchdog.evaluate_message_and_tools("Executor", "Reviewer", msg_2, 2, meta_2)

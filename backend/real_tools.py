@@ -2,17 +2,16 @@
 Real Tool Execution Layer for Sunniva Safeguard
 Provides real tool capabilities for AI agents:
 1. File / Search Tool (reads local workspace files or simulated web pages)
-2. Python Sandbox Code Execution Tool (runs Python code and captures stdout/stderr)
-3. Shared Memory Store Tool (persistent key-value context memory across agent turns)
+2. Restricted Python subset evaluator (captures bounded stdout and result values)
+3. Shared Memory Store Tool (process-local key-value context memory across agent turns)
 4. Schema & Output Verification Tool
+5. Restricted Python subset evaluator (no arbitrary exec)
 """
 
 import os
-import sys
-import io
 import json
-import traceback
 from typing import Dict, Any, Optional
+from safe_python import SafeEvaluationError, SafePythonEvaluator
 
 class SharedMemoryStore:
     """Persistent key-value memory store shared across multi-agent turns."""
@@ -69,51 +68,30 @@ def search_files_or_web(query: str, target_file: Optional[str] = None) -> str:
 
 def execute_python_code(code_string: str) -> Dict[str, Any]:
     """
-    Real tool: Executes Python code in an isolated execution sandbox, capturing stdout and stderr.
+    Evaluates a bounded, non-executing subset of Python and captures printed output.
     """
-    # Simple safety check against dangerous system calls
-    forbidden_terms = ["import os", "os.system", "subprocess", "rmtree", "__import__"]
-    for term in forbidden_terms:
-        if term in code_string and "os.getenv" not in code_string:
-            return {
-                "success": False,
-                "stdout": "",
-                "stderr": f"Security Error: Forbidden system execution term '{term}' detected.",
-                "return_value": None
-            }
-
-    old_stdout = sys.stdout
-    old_stderr = sys.stderr
-    redirected_output = sys.stdout = io.StringIO()
-    redirected_error = sys.stderr = io.StringIO()
-
-    exec_globals = {"GLOBAL_MEMORY": GLOBAL_MEMORY, "json": json}
-    exec_locals = {}
-
     try:
-        exec(code_string, exec_globals, exec_locals)
-        stdout_val = redirected_output.getvalue()
-        stderr_val = redirected_error.getvalue()
-        ret_val = exec_locals.get("result", exec_locals.get("output", None))
+        result = SafePythonEvaluator(memory=GLOBAL_MEMORY).evaluate(code_string)
         return {
             "success": True,
-            "stdout": stdout_val.strip(),
-            "stderr": stderr_val.strip(),
-            "return_value": str(ret_val) if ret_val is not None else None
+            "stdout": result["stdout"].strip(),
+            "stderr": "",
+            "return_value": result["return_value"]
         }
-    except Exception as e:
-        stdout_val = redirected_output.getvalue()
-        stderr_val = redirected_error.getvalue()
-        error_trace = traceback.format_exc()
+    except SafeEvaluationError as error:
         return {
             "success": False,
-            "stdout": stdout_val.strip(),
-            "stderr": f"{stderr_val.strip()}\nRuntime Exception: {str(e)}",
-            "error_trace": error_trace
+            "stdout": "",
+            "stderr": f"Safe Python subset error: {error}",
+            "return_value": None
         }
-    finally:
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
+    except Exception:
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": "Safe Python evaluation failed.",
+            "return_value": None
+        }
 
 
 def verify_schema_audit(data_payload: str, expected_schema: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
